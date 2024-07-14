@@ -1,0 +1,72 @@
+<?php
+$database = 'iottestdb';
+$conn = new mysqli('localhost', 'root', 'root');
+
+$sqlCommand = "
+-- Adminer 4.8.1 MySQL 8.0.30 dump
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+SET foreign_key_checks = 0;
+SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+SET NAMES utf8mb4;
+
+DROP DATABASE IF EXISTS `$database`;
+CREATE DATABASE `$database` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `$database`;
+
+DROP TABLE IF EXISTS `devices`;
+CREATE TABLE `devices` (
+  `serial_number` varchar(30) NOT NULL,
+  `jenis_controller` varchar(30) NOT NULL,
+  `lokasi` varchar(100) NOT NULL,
+  `aktif` enum('ya','tidak') NOT NULL DEFAULT 'ya',
+  PRIMARY KEY (`serial_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `devices` (`serial_number`, `jenis_controller`, `lokasi`, `aktif`) VALUES
+('12345678', 'esp32', 'bandung', 'ya');
+
+DROP TABLE IF EXISTS `sensor`;
+CREATE TABLE `sensor` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `jenis_sensor` varchar(30) NOT NULL,
+  `data_sensor` varchar(50) NOT NULL,
+  `waktu` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `serial_number` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `serial_number` (`serial_number`),
+  CONSTRAINT `sensor_ibfk_1` FOREIGN KEY (`serial_number`) REFERENCES `devices` (`serial_number`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+  `username` varchar(30) NOT NULL,
+  `password` text NOT NULL,
+  `nama_lengkap` varchar(50) NOT NULL,
+  `hak_akses` enum('user','admin') NOT NULL DEFAULT 'user',
+  `aktif` enum('ya','tidak') NOT NULL DEFAULT 'ya',
+  PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `user` (`username`, `password`, `nama_lengkap`, `hak_akses`, `aktif`) VALUES
+('admin', '\$2y\$10\$GTcot0.uzCa1RtsCSpJBu.VWD9nlg0xRWuPefNfziuemp76QZxwo2', 'beloved admin', 'admin', 'ya'),
+('user', '\$2y\$10\$HeE8b2uzJTUGfmbpBgNZ.Ooowo9h6WbW7chflon/97Y2FtFPfMrv6', 'beloved user', 'user', 'ya');
+";
+
+try {
+    if ($conn->multi_query($sqlCommand)) {
+        do {
+            if ($result = $conn->store_result()) {
+                $result->free();
+            }
+        } while ($conn->more_results() && $conn->next_result());
+        echo "DB migrations successful!\n";
+    } else {
+        throw new Exception("ERROR: " . $conn->error);
+    }
+} catch (Exception $e) {
+    echo $e->getMessage() . "\n";
+}
