@@ -133,7 +133,7 @@ $app->get('/device/:serial_number/edit', 'useAuth', function ($req, $res) use ($
     return $res->view(__DIR__ . '/views/pages/device.php', ['devices' => $devices, 'device' => $device]);
 });
 
-$app->post('/device', function ($req, $res) use ($db) {
+$app->post('/device', 'useAuth', function ($req, $res) use ($db) {
     CSRF::verify($req);
 
     $db->prepare("INSERT INTO devices ({$db->fields('devices')}) VALUES (?, ?, ?, ?)")
@@ -150,7 +150,7 @@ $app->post('/device', function ($req, $res) use ($db) {
     return $res->redirect(Route::is('device'));
 });
 
-$app->put('/device/:serial_number', function ($req, $res) use ($db, $cryptor) {
+$app->put('/device/:serial_number', 'useAuth', function ($req, $res) use ($db, $cryptor) {
     CSRF::verify($req);
 
     $db->prepare("UPDATE devices SET {$db->setClause('devices')} WHERE serial_number = ?")
@@ -193,7 +193,7 @@ $app->get('/user/:username/edit', 'useAuth', function ($req, $res) use ($db, $cr
     return $res->view(__DIR__ . '/views/pages/user.php', ['users' => $users, 'user' => $user]);
 });
 
-$app->post('/user', function ($req, $res) use ($db) {
+$app->post('/user', 'useAuth', function ($req, $res) use ($db) {
     CSRF::verify($req);
 
     $db->prepare("INSERT INTO user ({$db->fields('user')}) VALUES (?, ?, ?, ?, ?)")
@@ -211,7 +211,7 @@ $app->post('/user', function ($req, $res) use ($db) {
     return $res->redirect(Route::is('user'));
 });
 
-$app->put('/user/:username', function ($req, $res) use ($db, $cryptor) {
+$app->put('/user/:username', 'useAuth', function ($req, $res) use ($db, $cryptor) {
     CSRF::verify($req);
 
     $password = !empty($req['body']['password']) ? password_hash($req['body']['password'], PASSWORD_DEFAULT) : null;
